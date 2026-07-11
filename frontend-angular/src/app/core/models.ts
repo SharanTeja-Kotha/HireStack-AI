@@ -43,6 +43,9 @@ export interface CandidateOut {
   candidate_cluster?: number;
   recommendation?: string;
   created_at: string;
+  ats_score?: number;
+  strengths?: string[];
+  suggestions?: string[];
 }
 
 export interface Job {
@@ -193,6 +196,7 @@ export interface CVHistory {
   candidate_cluster?: number;
   skills?: string;
   education?: string;
+  recommendation?: string;
   created_at: string;
 }
 

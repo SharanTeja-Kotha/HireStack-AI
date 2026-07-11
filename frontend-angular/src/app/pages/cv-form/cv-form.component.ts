@@ -90,6 +90,15 @@ import { CandidateOut, JobRecommendation } from '../../core/models';
     /* Job rec cards */
     .rec-rank{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#0ea5e9,#38bdf8);color:#fff;font-weight:800;font-size:.82rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(14,165,233,.3);}
     .match-pill{display:inline-flex;align-items:center;gap:6px;font-size:.74rem;font-weight:800;padding:3px 11px;border-radius:999px;background:linear-gradient(135deg,rgba(124,58,237,.12),rgba(168,85,247,.08));color:#7c3aed;}
+
+    /* ATS Resume Insights Section styles */
+    .ats-section-title{font-size:1.1rem;font-weight:800;color:#0f172a;margin:28px 0 16px;display:flex;align-items:center;gap:8px;}
+    .ats-card-list{list-style:none;padding:0;margin:0;text-align:left;width:100%;}
+    .ats-card-list li{display:flex;align-items:flex-start;gap:8px;font-size:.86rem;color:#475569;margin-bottom:8px;line-height:1.4;}
+    .ats-card-list li i{font-size:.9rem;margin-top:2px;flex-shrink:0;}
+    .strength-icon{color:#10b981;}
+    .suggestion-icon{color:#f59e0b;}
+    .ats-rating-badge{display:inline-block;padding:4px 12px;border-radius:999px;font-size:.74rem;font-weight:800;margin-top:10px;text-transform:uppercase;letter-spacing:.04em;}
   `],
   template: `
     <div class="container" style="padding-top:40px;max-width:900px;">
@@ -243,6 +252,74 @@ import { CandidateOut, JobRecommendation } from '../../core/models';
             </div>
           }
 
+          <!-- ATS Resume Insights Section -->
+          @if (result()!.ats_score !== undefined && result()!.ats_score !== null) {
+            <h3 class="ats-section-title">
+              <i class="fas fa-tasks" style="color:#a855f7;"></i> ATS Resume Insights
+            </h3>
+            <div class="res-grid" style="margin-bottom: 24px;">
+              <!-- Card 1: ATS Resume Score -->
+              <div class="res-card">
+                <div class="gauge">
+                  <svg viewBox="0 0 128 128">
+                    <circle class="gauge-bg" cx="64" cy="64" r="56"></circle>
+                    <circle class="gauge-fg" cx="64" cy="64" r="56"
+                      [style.stroke]="atsRatingColor(result()!.ats_score ?? 0)"
+                      [style.stroke-dasharray]="351.86"
+                      [style.stroke-dashoffset]="351.86 * (1 - ((result()!.ats_score ?? 0) / 100))"></circle>
+                  </svg>
+                  <div class="gauge-center">
+                    <div class="gauge-val" [style.color]="atsRatingColor(result()!.ats_score ?? 0)">{{ result()!.ats_score }}<small>/100</small></div>
+                    <div class="gauge-lbl">ATS Score</div>
+                  </div>
+                </div>
+                <div class="res-lbl">ATS Resume Score</div>
+                <div class="ats-rating-badge"
+                     [style.background]="atsRatingBgColor(result()!.ats_score ?? 0)"
+                     [style.color]="atsRatingColor(result()!.ats_score ?? 0)">
+                  {{ atsRating(result()!.ats_score ?? 0) }}
+                </div>
+              </div>
+
+              <!-- Card 2: Resume Strengths -->
+              <div class="res-card" style="align-items: flex-start; text-align: left; padding: 22px;">
+                <div class="res-lbl" style="margin-bottom: 12px; font-size: .75rem; width: 100%; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
+                  <i class="fas fa-check-circle strength-icon"></i> Resume Strengths
+                </div>
+                <ul class="ats-card-list">
+                  @for (strength of result()!.strengths; track strength) {
+                    <li>
+                      <i class="fas fa-check-circle strength-icon"></i>
+                      <span>{{ formatStrength(strength) }}</span>
+                    </li>
+                  } @empty {
+                    <li style="color:#94a3b8; font-style: italic;">No strengths detected.</li>
+                  }
+                </ul>
+              </div>
+
+              <!-- Card 3: Resume Improvement Suggestions -->
+              <div class="res-card" style="align-items: flex-start; text-align: left; padding: 22px;">
+                <div class="res-lbl" style="margin-bottom: 12px; font-size: .75rem; width: 100%; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
+                  <i class="fas fa-lightbulb suggestion-icon"></i> Improvement Suggestions
+                </div>
+                <ul class="ats-card-list">
+                  @for (suggestion of result()!.suggestions; track suggestion) {
+                    <li>
+                      <i class="fas fa-lightbulb suggestion-icon"></i>
+                      <span>{{ suggestion }}</span>
+                    </li>
+                  } @empty {
+                    <li style="color:#10b981; font-weight: 600;">
+                      <i class="fas fa-check-circle strength-icon"></i>
+                      <span>Excellent! No improvements needed.</span>
+                    </li>
+                  }
+                </ul>
+              </div>
+            </div>
+          }
+
           <!-- Job Recommendations -->
           @if (jobRecs().length) {
             <h3 style="font-size:1rem;font-weight:700;margin:0 0 14px;">
@@ -392,5 +469,33 @@ export class CvFormComponent {
     if (!this.cvSkillInputVal && this.cvSkillTags.length) {
       this.cvSkillTags = this.cvSkillTags.slice(0, -1);
     }
+  }
+
+  atsRating(score: number): string {
+    if (score >= 85) return 'Excellent';
+    if (score >= 70) return 'Good';
+    if (score >= 50) return 'Average';
+    return 'Needs Improvement';
+  }
+
+  atsRatingColor(score: number): string {
+    if (score >= 85) return '#10b981';
+    if (score >= 70) return '#0ea5e9';
+    if (score >= 50) return '#f59e0b';
+    return '#ef4444';
+  }
+
+  atsRatingBgColor(score: number): string {
+    if (score >= 85) return 'rgba(16,185,129,.1)';
+    if (score >= 70) return 'rgba(14,165,233,.1)';
+    if (score >= 50) return 'rgba(245,158,11,.1)';
+    return 'rgba(239,68,68,.1)';
+  }
+
+  formatStrength(s: string): string {
+    if (s.startsWith('✓')) {
+      return s.substring(1).trim();
+    }
+    return s;
   }
 }

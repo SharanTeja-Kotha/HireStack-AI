@@ -86,6 +86,9 @@ class CandidateOut(BaseModel):
     recommendation: str | None
     created_at: datetime
     updated_at: datetime
+    ats_score: int | None = None
+    strengths: list[str] | None = None
+    suggestions: list[str] | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

@@ -4,7 +4,6 @@ export const routes: Routes = [
   { path: '', loadComponent: () => import('./pages/home/home.component').then(m => m.HomeComponent) },
   { path: 'login', loadComponent: () => import('./pages/login/login.component').then(m => m.LoginComponent) },
   { path: 'register', loadComponent: () => import('./pages/register/register.component').then(m => m.RegisterComponent) },
-  { path: 'dashboard', loadComponent: () => import('./pages/dashboard/dashboard.component').then(m => m.DashboardComponent) },
   { path: 'jobs', loadComponent: () => import('./pages/jobs/jobs.component').then(m => m.JobsComponent) },
   { path: 'analyze', loadComponent: () => import('./pages/cv-form/cv-form.component').then(m => m.CvFormComponent) },
   { path: 'candidate', loadComponent: () => import('./pages/candidate-portal/candidate-portal.component').then(m => m.CandidatePortalComponent) },

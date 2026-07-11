@@ -46,10 +46,6 @@ import { Notification } from './core/models';
                 <span class="dd-icon"><i class="fas fa-briefcase"></i></span>
                 <span class="dd-text"><strong>Job Openings</strong><small>Browse recommended jobs</small></span>
               </a>
-              <a routerLink="/dashboard" routerLinkActive="active" (click)="closeAll()">
-                <span class="dd-icon"><i class="fas fa-chart-bar"></i></span>
-                <span class="dd-text"><strong>Dashboard</strong><small>Stats & KPIs</small></span>
-              </a>
             </div>
           </div>
 
@@ -189,7 +185,6 @@ import { Notification } from './core/models';
           <ul class="footer-list">
             <li><a routerLink="/"><i class="fas fa-home footer-ext-icon"></i> Home</a></li>
             <li><a routerLink="/analyze"><i class="fas fa-file-alt footer-ext-icon"></i> Analyze CV</a></li>
-            <li><a routerLink="/dashboard"><i class="fas fa-chart-bar footer-ext-icon"></i> Dashboard</a></li>
             <li><a routerLink="/jobs"><i class="fas fa-briefcase footer-ext-icon"></i> Job Openings</a></li>
             <li><a routerLink="/showcase"><i class="fas fa-microscope footer-ext-icon"></i> Showcase</a></li>
           </ul>

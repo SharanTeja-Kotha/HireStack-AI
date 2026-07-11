@@ -167,7 +167,155 @@ def candidate_to_payload(candidate: CandidateCV) -> CandidateCreate:
     )
 
 
+def compute_ats_insights(
+    email: str | None,
+    phone: str | None,
+    education: str | None,
+    experience_years: float,
+    projects_count: int,
+    skills: list[str],
+    certifications: str | None,
+    raw_text: str | None = None
+) -> dict:
+    ats_score = 0
+    strengths = []
+    suggestions = []
+
+    # 1. Contact Details (Max 15)
+    contact_score = 0
+    if email:
+        contact_score += 5
+    if phone:
+        contact_score += 5
+    
+    if raw_text:
+        lt = raw_text.lower()
+        if "github" in lt:
+            contact_score += 2.5
+        else:
+            suggestions.append("Add GitHub profile")
+            
+        if "linkedin" in lt:
+            contact_score += 2.5
+        else:
+            suggestions.append("Add LinkedIn profile")
+    else:
+        if email and phone:
+            contact_score += 5
+    ats_score += contact_score
+
+    if email and phone:
+        strengths.append("✓ Contact Information Found")
+
+    # 2. Education (Max 15)
+    if education:
+        if education.lower() != "other":
+            ats_score += 15
+        else:
+            ats_score += 10
+        strengths.append("✓ Education Detected")
+
+    # 3. Experience (Max 20)
+    if experience_years >= 2:
+        ats_score += 20
+        strengths.append("✓ Experience Included")
+    elif experience_years > 0:
+        ats_score += 10
+        strengths.append("✓ Experience Included")
+    else:
+        suggestions.append("Add internship or freelance experience")
+
+    # 4. Skills (Max 20)
+    num_skills = len(skills)
+    if num_skills >= 10:
+        ats_score += 20
+    elif num_skills >= 5:
+        ats_score += 15
+    elif num_skills >= 1:
+        ats_score += 10
+    
+    if num_skills > 0:
+        strengths.append("✓ Skills Section Present")
+    
+    if num_skills < 5:
+        suggestions.append("Add more relevant technical skills")
+
+    # 5. Projects (Max 15)
+    if projects_count >= 2:
+        ats_score += 15
+        strengths.append("✓ Projects Included")
+    elif projects_count == 1:
+        ats_score += 10
+        strengths.append("✓ Projects Included")
+    else:
+        suggestions.append("Add more practical projects")
+
+    # 6. Certifications (Max 10)
+    if certifications and certifications.strip():
+        ats_score += 10
+        strengths.append("✓ Certifications Present")
+    else:
+        suggestions.append("Add Certifications")
+
+    # 7. Resume Length / Content (Max 5)
+    if raw_text:
+        words = len(raw_text.split())
+        if 300 <= words <= 1000:
+            ats_score += 5
+        elif words > 1000:
+            ats_score += 2
+            suggestions.append("Reduce resume length")
+        else:
+            ats_score += 2
+    else:
+        ats_score += 5
+
+    # Achievements suggestion (only if raw_text is present)
+    if raw_text:
+        lt = raw_text.lower()
+        has_achievements = any(kw in lt for kw in ["achievement", "award", "accomplishment", "won", "led", "managed", "delivered", "increase", "revenue", "saved", "optimized"])
+        if not has_achievements:
+            suggestions.append("Add measurable achievements")
+
+    ats_score = int(round(min(max(ats_score, 0), 100)))
+
+    return {
+        "ats_score": ats_score,
+        "strengths": strengths,
+        "suggestions": suggestions
+    }
+
+
 def candidate_to_out(candidate: CandidateCV) -> CandidateOut:
+    ats_score = None
+    strengths = None
+    suggestions = None
+    try:
+        if candidate.raw_payload:
+            payload_dict = json.loads(candidate.raw_payload)
+            if "ats_insights" in payload_dict:
+                insights = payload_dict["ats_insights"]
+                ats_score = insights.get("ats_score")
+                strengths = insights.get("strengths")
+                suggestions = insights.get("suggestions")
+    except Exception:
+        pass
+
+    if ats_score is None:
+        insights = compute_ats_insights(
+            email=candidate.email,
+            phone=candidate.phone,
+            education=candidate.education,
+            experience_years=candidate.experience_years,
+            projects_count=candidate.projects_count,
+            skills=skills_to_list(candidate.skills),
+            certifications=candidate.certifications,
+            raw_text=None
+        )
+        ats_score = insights["ats_score"]
+        strengths = insights["strengths"]
+        suggestions = insights["suggestions"]
+
     return CandidateOut(
         id=candidate.id,
         full_name=candidate.full_name,
@@ -186,6 +334,9 @@ def candidate_to_out(candidate: CandidateCV) -> CandidateOut:
         recommendation=candidate.recommendation,
         created_at=candidate.created_at,
         updated_at=candidate.updated_at,
+        ats_score=ats_score,
+        strengths=strengths,
+        suggestions=suggestions,
     )
 
 
@@ -368,6 +519,20 @@ def create_cv(
 ) -> CandidateOut:
     models = load_models()
     prediction = predict(payload, models)
+    
+    insights = compute_ats_insights(
+        email=payload.email,
+        phone=payload.phone,
+        education=payload.education,
+        experience_years=payload.experience_years,
+        projects_count=payload.projects_count,
+        skills=payload.skills,
+        certifications=payload.certifications,
+        raw_text=None
+    )
+    payload_dict = payload.model_dump()
+    payload_dict["ats_insights"] = insights
+
     candidate = CandidateCV(
         user_id=current_user.id if current_user else None,
         full_name=payload.full_name,
@@ -385,7 +550,7 @@ def create_cv(
         predicted_salary=prediction.predicted_salary,
         candidate_cluster=prediction.candidate_cluster,
         recommendation=prediction.recommendation,
-        raw_payload=json.dumps(payload.model_dump()),
+        raw_payload=json.dumps(payload_dict),
     )
     db.add(candidate)
     db.commit()
@@ -401,7 +566,19 @@ def create_cvs_bulk(
     models = load_models()
     results: list[CandidateOut] = []
     for payload in payloads:
-        prediction = predict(payload, models)
+        insights = compute_ats_insights(
+            email=payload.email,
+            phone=payload.phone,
+            education=payload.education,
+            experience_years=payload.experience_years,
+            projects_count=payload.projects_count,
+            skills=payload.skills,
+            certifications=payload.certifications,
+            raw_text=None
+        )
+        payload_dict = payload.model_dump()
+        payload_dict["ats_insights"] = insights
+
         candidate = CandidateCV(
             full_name=payload.full_name,
             email=payload.email,
@@ -418,7 +595,7 @@ def create_cvs_bulk(
             predicted_salary=prediction.predicted_salary,
             candidate_cluster=prediction.candidate_cluster,
             recommendation=prediction.recommendation,
-            raw_payload=json.dumps(payload.model_dump()),
+            raw_payload=json.dumps(payload_dict),
         )
         db.add(candidate)
         results.append(candidate)
@@ -460,6 +637,25 @@ async def upload_cv_pdf(
     models = load_models()
     prediction = predict(payload, models)
 
+    try:
+        from .pdf_parser import extract_text_from_pdf
+        raw_text = extract_text_from_pdf(pdf_bytes)
+    except Exception:
+        raw_text = None
+
+    insights = compute_ats_insights(
+        email=payload.email,
+        phone=payload.phone,
+        education=payload.education,
+        experience_years=payload.experience_years,
+        projects_count=payload.projects_count,
+        skills=payload.skills,
+        certifications=payload.certifications,
+        raw_text=raw_text
+    )
+    payload_dict = payload.model_dump()
+    payload_dict["ats_insights"] = insights
+
     candidate = CandidateCV(
         user_id=current_user.id if current_user else None,
         full_name=payload.full_name,
@@ -477,7 +673,7 @@ async def upload_cv_pdf(
         predicted_salary=prediction.predicted_salary,
         candidate_cluster=prediction.candidate_cluster,
         recommendation=prediction.recommendation,
-        raw_payload=json.dumps(payload.model_dump()),
+        raw_payload=json.dumps(payload_dict),
     )
     db.add(candidate)
     db.commit()
@@ -582,6 +778,19 @@ async def upload_cv_pdf_full(
     except Exception:
         job_recs = []
 
+    insights = compute_ats_insights(
+        email=payload.email,
+        phone=payload.phone,
+        education=payload.education,
+        experience_years=payload.experience_years,
+        projects_count=payload.projects_count,
+        skills=payload.skills,
+        certifications=payload.certifications,
+        raw_text=raw_text
+    )
+    payload_dict = payload.model_dump()
+    payload_dict["ats_insights"] = insights
+
     # 5. Save to DB
     candidate = CandidateCV(
         full_name=payload.full_name,
@@ -599,7 +808,7 @@ async def upload_cv_pdf_full(
         predicted_salary=prediction.predicted_salary,
         candidate_cluster=prediction.candidate_cluster,
         recommendation=prediction.recommendation,
-        raw_payload=json.dumps(payload.model_dump()),
+        raw_payload=json.dumps(payload_dict),
     )
     db.add(candidate)
     db.commit()
