@@ -1,0 +1,15 @@
+Demo Accounts
+
+Administrator
+Email: admin@hirestack.com
+Password: Admin1234!
+
+Recruiter
+Email: recruiter@hirestack.com
+Password: Recruit123!
+
+Candidate
+Email: candidate@hirestack.com
+Password: Candidate123!
+
+These demo accounts are provided only for testing the HireStack application.

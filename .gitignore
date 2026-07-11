@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+backend/.venv/
+*.egg-info/
+
+# Node / Angular
+node_modules/
+frontend-angular/dist/
+frontend-angular/.angular/
+.angular/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+*.log
+
+# Copilot / Prompts
+.prompts/
+.prompts/.git-setup-done
+.prompts/.migration-log.json
+
+# ML models (large files — use Git LFS or download separately)
+# backend/models/*.pkl
+
+# Marketing assets (large files)
+marketing/
+
+# Environment
+.env
+.env.local
