@@ -147,19 +147,19 @@ export class ChatWidgetComponent implements OnInit {
       import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat@latest/dist/chat.bundle.es.js';
 
       const defaultResponses = {
-        'bonjour': 'Bonjour! Je suis l\'assistant HireStack. Je suis actuellement en mode démo. Voici comment je peux vous aider:\n\n📋 **Analyse CV** - Découvrez comment nos modèles ML évaluent les candidats\n💼 **Recommandations d\\'Emploi** - Explorez des milliers d\\'offres d\\'emploi\n❓ **FAQ** - Questions fréquemment posées sur HireStack',
-        'analyse': 'Notre système utilise 6 modèles ML entraînés:\n\n1. **Prédiction d\\'embauche** - Précision 100%\n2. **Prédiction de salaire** - Erreur MAE: $21,106\n3. **Classification des rôles** - 24 catégories, F1: 75.5%\n4. **Recommandation d\\'emplois** - TF-IDF + Jaccard sur 20k+ postes\n\nVolez voir plus? Visitez https://hirestack-frontend.onrender.com',
-        'emploi': 'HireStack recommande des emplois basés sur:\n✅ Vos compétences extraites du CV\n✅ Votre expérience professionnelle\n✅ Votre domaine de spécialité (24 catégories)\n✅ Similarité avec 20,414 offres d\\'emploi réelles\n\nEssayez-le maintenant: https://hirestack-frontend.onrender.com',
-        'features': 'Fonctionnalités principales de HireStack:\n\n✨ **Parsing CV** - Extraction automatique des données\n🤖 **ML Scoring** - Prédiction d\\'embauche et salaire\n💼 **Matching d\\'emplois** - Recommandations intelligentes\n📊 **Dashboards** - Interfaces pour candidats et recruteurs\n🔔 **Notifications** - Mises à jour en temps réel\n📈 **Analytics Power BI** - Insights recrutement',
-        'default': 'Je suis actuellement en mode démo. Pour une assistance complète, veuillez contacter notre équipe ou visitez https://hirestack-frontend.onrender.com\n\nVous pouvez me demander sur: analyse, emploi, ou features.'
+        'bonjour': 'Hello! I am the HireStack Assistant. I am currently in demo mode. Here is how I can help you:\n\n📋 **Resume Analysis** - Discover how our ML models evaluate candidates\n💼 **Job Recommendations** - Explore thousands of job opportunities\n❓ **FAQ** - Frequently asked questions about HireStack',
+        'analyse': 'Our system uses 6 trained ML models:\n\n1. **Hiring Prediction** - 100% Accuracy\n2. **Salary Prediction** - MAE Error: $21,106\n3. **Role Classification** - 24 categories, F1: 75.5%\n4. **Job Recommendation** - TF-IDF + Jaccard on 20k+ postings\n\nWant to see more? Visit https://hirestack-frontend.onrender.com',
+        'emploi': 'HireStack recommends jobs based on:\n✅ Your skills extracted from the resume\n✅ Your professional experience\n✅ Your specialty field (24 categories)\n✅ Similarity with 20,414 real job offers\n\nTry it now: https://hirestack-frontend.onrender.com',
+        'features': 'Key features of HireStack:\n\n✨ **Resume Parsing** - Automatic data extraction\n🤖 **ML Scoring** - Hiring and salary prediction\n💼 **Job Matching** - Smart recommendations\n📊 **Dashboards** - Candidate and recruiter interfaces\n🔔 **Notifications** - Real-time updates\n📈 **Power BI Analytics** - Recruitment insights',
+        'default': 'I am currently in demo mode. For full assistance, please contact our team or visit https://hirestack-frontend.onrender.com\n\nYou can ask me about: analysis, jobs, or features.'
       };
 
       function getDefaultResponse(userMessage) {
         const msg = userMessage.toLowerCase().trim();
-        if (msg.includes('bonjour') || msg.includes('salut') || msg.includes('hello')) return defaultResponses.bonjour;
-        if (msg.includes('analyse') || msg.includes('modèle') || msg.includes('ml')) return defaultResponses.analyse;
-        if (msg.includes('emploi') || msg.includes('job') || msg.includes('offre')) return defaultResponses.emploi;
-        if (msg.includes('feature') || msg.includes('capacité') || msg.includes('quoi')) return defaultResponses.features;
+        if (msg.includes('bonjour') || msg.includes('salut') || msg.includes('hello') || msg.includes('hi')) return defaultResponses.bonjour;
+        if (msg.includes('analyse') || msg.includes('analysis') || msg.includes('modèle') || msg.includes('model') || msg.includes('ml')) return defaultResponses.analyse;
+        if (msg.includes('emploi') || msg.includes('job') || msg.includes('offre') || msg.includes('offer')) return defaultResponses.emploi;
+        if (msg.includes('feature') || msg.includes('capacité') || msg.includes('capacity') || msg.includes('quoi') || msg.includes('what')) return defaultResponses.features;
         return defaultResponses.default;
       }
 
@@ -168,17 +168,17 @@ export class ChatWidgetComponent implements OnInit {
         mode: 'window',
         showWelcomeScreen: false,
         initialMessages: [
-          'Bonjour ! Je suis l\\'assistant HireStack.',
-          'Comment puis-je vous aider aujourd\\'hui ?',
-          '(Mode démo - Réponses pré-définies)'
+          'Hello! I am the HireStack Assistant.',
+          'How can I help you today?',
+          '(Demo Mode - Pre-defined answers)'
         ],
         i18n: {
           en: {
             title: 'HireStack Assistant',
-            subtitle: 'Questions sur les offres, l\\'analyse CV, etc.',
-            inputPlaceholder: 'Tapez votre message...',
-            getStarted: 'Nouvelle conversation',
-            closeButtonTooltip: 'Fermer',
+            subtitle: 'Questions about offers, resume analysis, etc.',
+            inputPlaceholder: 'Type your message...',
+            getStarted: 'New conversation',
+            closeButtonTooltip: 'Close',
           }
         },
         onMessage: (message) => {

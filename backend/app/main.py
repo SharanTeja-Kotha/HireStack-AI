@@ -1316,17 +1316,17 @@ def apply_to_job(
             company_name = job.company_name
 
     candidate_name = user.full_name or user.email
-    applied_at = app_record.created_at.strftime("%d/%m/%Y à %H:%M")
+    applied_at = app_record.created_at.strftime("%d/%m/%Y at %H:%M")
 
     # Notify recruiter (if job post belongs to a recruiter)
     if recruiter_user_id:
         db.add(Notification(
             user_id=recruiter_user_id,
             type="application_received",
-            title=f"Nouvelle candidature — {job_title}",
+            title=f"New application — {job_title}",
             message=(
-                f"{candidate_name} a postulé pour le poste «\u202f{job_title}\u202f» "
-                f"le {applied_at}."
+                f"{candidate_name} applied for the job \"{job_title}\" "
+                f"on {applied_at}."
             ),
             data=json.dumps({
                 "application_id": app_record.id,
@@ -1341,11 +1341,11 @@ def apply_to_job(
     db.add(Notification(
         user_id=user.id,
         type="application_confirmed",
-        title=f"Candidature envoyée — {job_title}",
+        title=f"Application submitted — {job_title}",
         message=(
-            f"Votre candidature pour «\u202f{job_title}\u202f»"
-            + (f" chez {company_name}" if company_name else "")
-            + " a bien été reçue. Vous serez notifié(e) dès qu'un recruteur examine votre dossier."
+            f"Your application for \"{job_title}\""
+            + (f" at {company_name}" if company_name else "")
+            + " has been successfully received. You will be notified as soon as a recruiter reviews your dossier."
         ),
         data=json.dumps({
             "application_id": app_record.id,
@@ -1421,7 +1421,7 @@ def update_application_status(
         application.rejection_reason = body.rejection_reason
 
     # Resolve job title for notification
-    job_title = "votre candidature"
+    job_title = "your application"
     company_name = None
     if application.job_post_id:
         post = db.get(RecruiterJobPost, application.job_post_id)
@@ -1434,24 +1434,24 @@ def update_application_status(
     if body.status == "accepted":
         slots_text = ""
         if body.meeting_slots:
-            slots_text = " Créneaux proposés\u00a0: " + ", ".join(body.meeting_slots) + "."
+            slots_text = " Proposed slots: " + ", ".join(body.meeting_slots) + "."
         meeting_info = ""
         if body.meeting_type:
-            type_labels = {"video": "Appel vidéo", "phone": "Appel téléphonique", "in-person": "Entretien en présentiel"}
-            meeting_info = f" Format\u00a0: {type_labels.get(body.meeting_type, body.meeting_type)}."
-        link_info = f" Lien\u00a0: {body.meeting_link}." if body.meeting_link else ""
-        location_info = f" Lieu\u00a0: {body.meeting_location}." if body.meeting_location else ""
-        contact_info = f" Contact\u00a0: {body.recruiter_contact}." if body.recruiter_contact else ""
-        prep_info = f" Préparation\u00a0: {body.preparation_notes}" if body.preparation_notes else ""
+            type_labels = {"video": "Video call", "phone": "Phone call", "in-person": "In-person interview"}
+            meeting_info = f" Format: {type_labels.get(body.meeting_type, body.meeting_type)}."
+        link_info = f" Link: {body.meeting_link}." if body.meeting_link else ""
+        location_info = f" Location: {body.meeting_location}." if body.meeting_location else ""
+        contact_info = f" Contact: {body.recruiter_contact}." if body.recruiter_contact else ""
+        prep_info = f" Preparation: {body.preparation_notes}" if body.preparation_notes else ""
 
         db.add(Notification(
             user_id=application.user_id,
             type="accepted",
-            title=f"🎉 Félicitations — Votre candidature a été retenue\u00a0!",
+            title=f"🎉 Congratulations — Your application has been selected!",
             message=(
-                f"Bonne nouvelle\u00a0! {recruiter_name}"
+                f"Good news! {recruiter_name}"
                 + (f" ({company_name})" if company_name else "")
-                + f" a examiné votre candidature pour «\u202f{job_title}\u202f» et souhaite vous rencontrer."
+                + f" has reviewed your application for \"{job_title}\" and wishes to meet you."
                 + meeting_info + slots_text + link_info + location_info + contact_info + prep_info
             ),
             data=json.dumps({
@@ -1470,13 +1470,13 @@ def update_application_status(
         db.add(Notification(
             user_id=application.user_id,
             type="rejected",
-            title=f"Candidature pour «\u202f{job_title}\u202f»",
+            title=f"Application for \"{job_title}\"",
             message=(
-                f"Après examen attentif de votre dossier, {recruiter_name}"
+                f"After careful review of your application, {recruiter_name}"
                 + (f" ({company_name})" if company_name else "")
-                + f" ne donnera pas suite à votre candidature pour «\u202f{job_title}\u202f»."
+                + f" will not move forward with your application for \"{job_title}\"."
                 + reason_text
-                + " Nous vous encourageons à consulter d'autres offres sur notre plateforme."
+                + " We encourage you to browse other opportunities on our platform."
             ),
             data=json.dumps({
                 "application_id": app_id,
